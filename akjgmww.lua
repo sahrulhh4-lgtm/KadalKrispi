@@ -1,189 +1,109 @@
--- Load Orion
+-- Library
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({Name = "Teleport & Tools", HidePremium = false, SaveConfig = false, ConfigFolder = "ToolsHub"})
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 
--- ===================
--- 🔹 Fly Variables
--- ===================
-local flying = false
-local flySpeed = 50
-local flyConnection
+-- // TELEPORT TAB
+local TeleportTab = Window:MakeTab({Name = "Teleport", Icon = "rbxassetid://4483345998", PremiumOnly = false})
 
-local function startFly()
-    if flying then return end
-    flying = true
-    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local root = char:WaitForChild("HumanoidRootPart")
-
-    flyConnection = RunService.RenderStepped:Connect(function()
-        local move = Vector3.new()
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-            move = move + workspace.CurrentCamera.CFrame.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-            move = move - workspace.CurrentCamera.CFrame.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-            move = move - workspace.CurrentCamera.CFrame.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-            move = move + workspace.CurrentCamera.CFrame.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            move = move + Vector3.new(0,1,0)
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-            move = move - Vector3.new(0,1,0)
-        end
-
-        if move.Magnitude > 0 then
-            root.Velocity = move.Unit * flySpeed
-        else
-            root.Velocity = Vector3.new(0,0,0)
-        end
-    end)
-end
-
-local function stopFly()
-    flying = false
-    if flyConnection then
-        flyConnection:Disconnect()
-        flyConnection = nil
-    end
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
-    end
-end
-
--- ===================
--- 🔹 NoClip Variables
--- ===================
-local noclip = false
-local noclipConnection
-
-local function startNoClip()
-    if noclip then return end
-    noclip = true
-    noclipConnection = RunService.Stepped:Connect(function()
-        local char = LocalPlayer.Character
-        if char then
-            for _, part in pairs(char:GetDescendants()) do
-                if part:IsA("BasePart") and part.CanCollide then
-                    part.CanCollide = false
-                end
-            end
-        end
-    end)
-end
-
-local function stopNoClip()
-    noclip = false
-    if noclipConnection then
-        noclipConnection:Disconnect()
-        noclipConnection = nil
-    end
-    local char = LocalPlayer.Character
-    if char then
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
-            end
-        end
-    end
-end
-
--- ===================
--- 🔹 Orion UI
--- ===================
-local Window = OrionLib:MakeWindow({
-    Name = "Teleport & Tools",
-    HidePremium = false,
-    SaveConfig = true,
-    ConfigFolder = "TeleGunung"
-})
-
--- Tab Teleport
-local TeleTab = Window:MakeTab({
-    Name = "Teleport",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
-TeleTab:AddSection({ Name = "Gunung / Checkpoint" })
-
-TeleTab:AddButton({
-    Name = "Teleport ke Gunung Atin (Checkpoint 26)",
+TeleportTab:AddButton({
+    Name = "Checkpoint 26",
     Callback = function()
-        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        char:MoveTo(Vector3.new(624.6, 1800.7, 3432.4))
-    end    
+        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(624.6, 1800.7, 3432.4)
+    end
 })
 
-TeleTab:AddButton({
-    Name = "Teleport ke Checkpoint 27",
+TeleportTab:AddButton({
+    Name = "Checkpoint 27",
     Callback = function()
-        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        char:MoveTo(Vector3.new(791.9, 2171.7, 3935.4))
-    end    
+        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(791.9, 2171.7, 3935.4)
+    end
 })
 
-TeleTab:AddSection({ Name = "Koordinat" })
-local coordLabel = TeleTab:AddLabel("Posisi: X=0, Y=0, Z=0")
+TeleportTab:AddButton({
+    Name = "Teleport Random Player",
+    Callback = function()
+        local randomPlayer = Players:GetPlayers()[math.random(1, #Players:GetPlayers())]
+        if randomPlayer and randomPlayer.Character and randomPlayer ~= LocalPlayer then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = randomPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(2,0,2)
+        end
+    end
+})
 
-RunService.RenderStepped:Connect(function()
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        local pos = char.HumanoidRootPart.Position
-        coordLabel:Set("Posisi: X="..math.floor(pos.X).." Y="..math.floor(pos.Y).." Z="..math.floor(pos.Z))
+-- // TOOLS TAB
+local ToolsTab = Window:MakeTab({Name = "Tools", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+
+-- Lihat Koordinat
+ToolsTab:AddLabel("Koordinat Player:")
+
+local coordLabel = ToolsTab:AddLabel("X=0 | Y=0 | Z=0")
+game:GetService("RunService").RenderStepped:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local pos = LocalPlayer.Character.HumanoidRootPart.Position
+        coordLabel:Set("X="..math.floor(pos.X).." | Y="..math.floor(pos.Y).." | Z="..math.floor(pos.Z))
     end
 end)
 
--- Tab Fly
-local FlyTab = Window:MakeTab({
-    Name = "Fly & NoClip",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+-- Fly + NoClip
+local flying = false
+local noclip = false
+local speed = 50
 
-FlyTab:AddToggle({
-    Name = "Aktifkan Fly",
-    Default = false,
-    Callback = function(Value)
-        if Value then
-            startFly()
-        else
-            stopFly()
-        end
-    end    
-})
-
-FlyTab:AddSlider({
-    Name = "Kecepatan Fly",
+ToolsTab:AddSlider({
+    Name = "Fly Speed",
     Min = 10,
     Max = 200,
     Default = 50,
+    Color = Color3.fromRGB(255,255,255),
     Increment = 5,
     ValueName = "Speed",
-    Callback = function(Value)
-        flySpeed = Value
+    Callback = function(val)
+        speed = val
     end    
 })
 
-FlyTab:AddToggle({
-    Name = "Aktifkan NoClip",
+ToolsTab:AddToggle({
+    Name = "Fly + NoClip",
     Default = false,
-    Callback = function(Value)
-        if Value then
-            startNoClip()
-        else
-            stopNoClip()
-        end
+    Callback = function(val)
+        flying = val
+        noclip = val
     end    
 })
+
+-- Fly & NoClip Logic
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
+
+RS.RenderStepped:Connect(function()
+    if flying and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local HRP = LocalPlayer.Character.HumanoidRootPart
+        local camCF = workspace.CurrentCamera.CFrame
+        local moveDir = Vector3.zero
+
+        if UIS:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + camCF.LookVector end
+        if UIS:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - camCF.LookVector end
+        if UIS:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - camCF.RightVector end
+        if UIS:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + camCF.RightVector end
+        if UIS:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0,1,0) end
+        if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir = moveDir + Vector3.new(0,-1,0) end
+
+        if moveDir.Magnitude > 0 then
+            HRP.Velocity = moveDir.Unit * speed
+        else
+            HRP.Velocity = Vector3.zero
+        end
+
+        if noclip then
+            for _,v in pairs(LocalPlayer.Character:GetDescendants()) do
+                if v:IsA("BasePart") and v.CanCollide then
+                    v.CanCollide = false
+                end
+            end
+        end
+    end
+end)
 
 OrionLib:Init()
