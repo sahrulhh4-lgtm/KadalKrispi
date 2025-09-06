@@ -3,7 +3,7 @@ local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jens
 
 -- Window
 local Window = OrionLib:MakeWindow({
-    Name = "Kadal Krispi",
+    Name = "KadalKrispi",
     HidePremium = false,
     SaveConfig = true,
     ConfigFolder = "KadalKrispiConfig"
